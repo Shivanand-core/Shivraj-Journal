@@ -37,10 +37,11 @@ export default function App() {
       const hash = window.location.hash;
 
       let slug: string | null = null;
-      if (path.startsWith('/articles/')) {
-        slug = path.replace('/articles/', '').split('/')[0];
-      } else if (hash.startsWith('#/articles/')) {
-        slug = hash.replace('#/articles/', '').split('/')[0];
+      if (hash.startsWith('#/articles/')) {
+        slug = hash.replace('#/articles/', '').split('/')[0].split('?')[0];
+      } else if (path.includes('/articles/')) {
+        const parts = path.split('/articles/');
+        slug = parts[1]?.split('/')[0].split('?')[0] || null;
       }
 
       if (slug) {
@@ -53,7 +54,7 @@ export default function App() {
       }
 
       // If no article in path/hash, or navigating back home
-      if (!path.startsWith('/articles/') && !hash.startsWith('#/articles/')) {
+      if (!path.includes('/articles/') && !hash.startsWith('#/articles/')) {
         setDedicatedArticle(null);
       }
     };
@@ -84,17 +85,15 @@ export default function App() {
   const handleOpenDedicatedArticle = (article: JournalArticle) => {
     setDedicatedArticle(article);
     setReaderModalOpen(false);
-    if (window.location.pathname !== `/articles/${article.slug}`) {
-      window.history.pushState(null, '', `/articles/${article.slug}`);
-    }
+    window.location.hash = `#/articles/${article.slug}`;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBackToRepository = () => {
     setDedicatedArticle(null);
     setActiveTab('repository');
-    if (window.location.pathname.startsWith('/articles')) {
-      window.history.pushState(null, '', '/');
+    if (window.location.hash.startsWith('#/articles')) {
+      window.history.pushState(null, '', window.location.pathname + window.location.search);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -102,8 +101,8 @@ export default function App() {
   const handleSelectTab = (tab: NavTab) => {
     setDedicatedArticle(null);
     setActiveTab(tab);
-    if (window.location.pathname.startsWith('/articles')) {
-      window.history.pushState(null, '', '/');
+    if (window.location.hash.startsWith('#/articles')) {
+      window.history.pushState(null, '', window.location.pathname + window.location.search);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
