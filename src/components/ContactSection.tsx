@@ -30,10 +30,10 @@ export default function ContactSection({ isStandalonePage = false }: ContactSect
   };
 
   return (
-    <div id="contact">
+    <section id="contact" className="scroll-mt-24 sm:scroll-mt-28">
       {/* Top Campus Facade Banner (Matching page 4 of Image 3) */}
       {isStandalonePage && (
-        <div className="relative bg-[#071322] text-white py-16 sm:py-20 overflow-hidden border-b border-slate-800">
+        <div className="relative bg-[#071322] text-white py-12 sm:py-16 overflow-hidden border-b border-slate-800">
           <div className="absolute inset-0 z-0">
             <img
               src="/src/assets/images/college_wide_banner_1788796660016.jpg"
@@ -44,7 +44,7 @@ export default function ContactSection({ isStandalonePage = false }: ContactSect
             <div className="absolute inset-0 bg-gradient-to-r from-[#071322] via-[#071322]/80 to-[#071322]/60" />
           </div>
 
-          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-3">
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-2.5">
             <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight">
               Contact Us
             </h1>
@@ -56,20 +56,20 @@ export default function ContactSection({ isStandalonePage = false }: ContactSect
         </div>
       )}
 
-      {/* Main Section Content */}
-      <section className="py-10 sm:py-16 md:py-20 bg-white border-b border-slate-200">
+      {/* Main Section Content with Compact Padding */}
+      <div className="py-8 sm:py-10 lg:py-12 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Breadcrumbs if standalone */}
           {isStandalonePage && (
-            <nav className="mb-6 sm:mb-8 text-xs font-sans text-slate-500 flex items-center gap-1.5">
+            <nav className="mb-5 sm:mb-6 text-xs font-sans text-slate-500 flex items-center gap-1.5">
               <span>Home</span>
               <span>&gt;</span>
               <span className="text-slate-800 font-semibold">Contact</span>
             </nav>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 lg:gap-14">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12">
             
             {/* Left Column: "Get in Touch" & Contact Metadata */}
             <div className="lg:col-span-6 space-y-6 sm:space-y-8 text-left">
@@ -257,7 +257,7 @@ export default function ContactSection({ isStandalonePage = false }: ContactSect
           </div>
 
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }

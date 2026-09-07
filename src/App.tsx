@@ -21,6 +21,7 @@ import { INAUGURAL_ARTICLES, getArticleBySlug } from './data/journalData';
 export default function App() {
   const [activeTab, setActiveTab] = useState<NavTab>('home');
   const [dedicatedArticle, setDedicatedArticle] = useState<JournalArticle | null>(null);
+  const [selectedDiscipline, setSelectedDiscipline] = useState<string>('All');
 
   const [readerModalOpen, setReaderModalOpen] = useState(false);
   const [selectedArticleForReader, setSelectedArticleForReader] = useState<JournalArticle | null>(null);
@@ -29,6 +30,28 @@ export default function App() {
   const [selectedArticleForCitation, setSelectedArticleForCitation] = useState<JournalArticle | null>(null);
 
   const [submissionModalOpen, setSubmissionModalOpen] = useState(false);
+
+  // Smooth scroll to target section accounting for fixed/sticky header offset
+  const scrollToSection = (sectionId: string) => {
+    if (sectionId === 'home') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    const el = document.getElementById(sectionId);
+    if (el) {
+      const header = document.querySelector('header');
+      const headerHeight = header ? header.getBoundingClientRect().height : 95;
+      const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
+      // Section aligns naturally below fixed header with clear margin
+      const offsetPosition = Math.max(0, elementPosition - headerHeight - 8);
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   // Sync URL for dedicated article routing and back/forward browser history
   useEffect(() => {
@@ -69,6 +92,49 @@ export default function App() {
     };
   }, []);
 
+  // Handle hash scrolling on direct load
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && !hash.startsWith('#/articles/')) {
+      const targetId = hash.replace('#', '');
+      const timer = setTimeout(() => {
+        scrollToSection(targetId);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Track scroll position to update active navbar link gracefully
+  useEffect(() => {
+    if (dedicatedArticle) return;
+
+    const handleScroll = () => {
+      if (window.scrollY < 200) {
+        setActiveTab('home');
+        return;
+      }
+
+      const sectionIds: NavTab[] = ['contact', 'repository', 'current-issue', 'about'];
+      const header = document.querySelector('header');
+      const headerHeight = header ? header.getBoundingClientRect().height : 95;
+      const scrollPos = window.scrollY + headerHeight + 100;
+
+      for (const id of sectionIds) {
+        const el = document.getElementById(id);
+        if (el) {
+          const top = el.getBoundingClientRect().top + window.pageYOffset;
+          if (scrollPos >= top) {
+            setActiveTab(id);
+            return;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [dedicatedArticle]);
+
   // Handlers
   const handleOpenInauguralIssue = () => {
     setSelectedArticleForReader(null); // Shows volume cover / preface
@@ -95,16 +161,31 @@ export default function App() {
     if (window.location.hash.startsWith('#/articles')) {
       window.history.pushState(null, '', window.location.pathname + window.location.search);
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => {
+      scrollToSection('repository');
+    }, 60);
   };
 
   const handleSelectTab = (tab: NavTab) => {
+    const wasOnDedicatedArticle = !!dedicatedArticle;
     setDedicatedArticle(null);
     setActiveTab(tab);
     if (window.location.hash.startsWith('#/articles')) {
       window.history.pushState(null, '', window.location.pathname + window.location.search);
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (wasOnDedicatedArticle) {
+      setTimeout(() => {
+        scrollToSection(tab);
+      }, 60);
+    } else {
+      scrollToSection(tab);
+    }
+  };
+
+  const handleSelectDiscipline = (discipline: string) => {
+    setSelectedDiscipline(discipline);
+    scrollToSection('repository');
   };
 
   const handleOpenCitation = (article: JournalArticle) => {
@@ -132,95 +213,36 @@ export default function App() {
             onOpenDigitalReader={handleOpenDigitalReaderForArticle}
           />
         ) : (
-          <>
-            {/* View 1: Home Page (Complete 11 Sections in exact chronological layout) */}
-            {activeTab === 'home' && (
-              <div className="space-y-0">
-                {/* 3. Hero Section & 4. Academic Value / Features Section */}
-                <Hero
-                  onReadInauguralClick={handleOpenInauguralIssue}
-                  onExploreIssueClick={() => {
-                    const el = document.getElementById('repository');
-                    if (el) {
-                      el.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }}
-                />
+          /* Unified Single-Page Layout (Complete chronological sections without abrupt jumps) */
+          <div className="space-y-0">
+            {/* 3. Hero Section & 4. Academic Value / Features Section */}
+            <Hero
+              onReadInauguralClick={handleOpenInauguralIssue}
+              onExploreIssueClick={() => scrollToSection('repository')}
+            />
 
-                {/* 5. About the Journal & 6. Key Focus Areas */}
-                <AboutSection isStandalonePage={false} />
+            {/* 5. About the Journal & 6. Key Focus Areas (Card-Based Grid) */}
+            <AboutSection
+              isStandalonePage={false}
+              onSelectDiscipline={handleSelectDiscipline}
+            />
 
-                {/* 7. Current Issue (Inaugural Issue Vol. 1, Issue 1, Jan-June 2026) & 8. What to Expect */}
-                <CurrentIssueSection
-                  isStandalonePage={false}
-                  onOpenVolumeReader={handleOpenInauguralIssue}
-                />
+            {/* 7. Current Issue (Inaugural Issue Vol. 1, Issue 1, Jan-June 2026) & 8. What to Expect */}
+            <CurrentIssueSection
+              isStandalonePage={false}
+              onOpenVolumeReader={handleOpenInauguralIssue}
+            />
 
-                {/* 9. Curated Articles / Research Repository */}
-                <ResearchRepositorySection
-                  onSelectArticle={handleOpenDedicatedArticle}
-                  onOpenCitationModal={handleOpenCitation}
-                />
+            {/* 9. Curated Articles / Research Repository */}
+            <ResearchRepositorySection
+              onSelectArticle={handleOpenDedicatedArticle}
+              onOpenCitationModal={handleOpenCitation}
+              initialDiscipline={selectedDiscipline}
+            />
 
-                {/* 10. Contact */}
-                <ContactSection isStandalonePage={false} />
-              </div>
-            )}
-
-            {/* View 2: Dedicated About Page */}
-            {activeTab === 'about' && (
-              <AboutSection isStandalonePage={true} />
-            )}
-
-            {/* View 3: Dedicated Current Issue Page */}
-            {activeTab === 'current-issue' && (
-              <div className="space-y-0">
-                <CurrentIssueSection
-                  isStandalonePage={true}
-                  onOpenVolumeReader={handleOpenInauguralIssue}
-                />
-                <ResearchRepositorySection
-                  onSelectArticle={handleOpenDedicatedArticle}
-                  onOpenCitationModal={handleOpenCitation}
-                />
-              </div>
-            )}
-
-            {/* View 4: Dedicated Research Repository Page */}
-            {activeTab === 'repository' && (
-              <div className="space-y-0">
-                <div className="relative bg-[#071322] text-white py-16 sm:py-20 overflow-hidden border-b-4 border-[#C5A059]">
-                  <div className="absolute inset-0 z-0">
-                    <img
-                      src="/src/assets/images/academic_library_bg_1788796629847.jpg"
-                      alt="Academic Repository Library"
-                      className="w-full h-full object-cover opacity-25 mix-blend-luminosity filter brightness-75"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#071322] via-[#071322]/85 to-[#071322]/70" />
-                  </div>
-                  <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-3">
-                    <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight">
-                      Research Repository
-                    </h1>
-                    <div className="w-20 h-0.5 bg-[#C5A059] mx-auto" />
-                    <p className="text-xs sm:text-sm font-sans tracking-[0.25em] uppercase text-[#E0C58A] font-medium pt-1">
-                      PEER-REVIEWED MANUSCRIPTS & SCHOLARLY ARCHIVE
-                    </p>
-                  </div>
-                </div>
-                <ResearchRepositorySection
-                  onSelectArticle={handleOpenDedicatedArticle}
-                  onOpenCitationModal={handleOpenCitation}
-                />
-              </div>
-            )}
-
-            {/* View 5: Dedicated Contact Page */}
-            {activeTab === 'contact' && (
-              <ContactSection isStandalonePage={true} />
-            )}
-          </>
+            {/* 10. Contact */}
+            <ContactSection isStandalonePage={false} />
+          </div>
         )}
       </main>
 

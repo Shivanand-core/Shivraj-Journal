@@ -23,18 +23,8 @@ export default function Header({ activeTab, onSelectTab, onOpenReaderModal }: He
   ];
 
   const handleNavClick = (tab: NavTab) => {
-    onSelectTab(tab);
     setMobileMenuOpen(false);
-    if (tab === 'home') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      const el = document.getElementById(tab);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }
+    onSelectTab(tab);
   };
 
   return (

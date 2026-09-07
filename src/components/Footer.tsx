@@ -23,7 +23,6 @@ export default function Footer({ onSelectTab }: FooterProps) {
     if (onSelectTab) {
       onSelectTab(tab);
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (

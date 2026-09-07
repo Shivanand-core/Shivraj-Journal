@@ -16,17 +16,25 @@ import { JournalArticle } from '../types';
 interface ResearchRepositorySectionProps {
   onSelectArticle: (article: JournalArticle) => void;
   onOpenCitationModal: (article: JournalArticle) => void;
+  initialDiscipline?: string;
 }
 
 export default function ResearchRepositorySection({
   onSelectArticle,
   onOpenCitationModal,
+  initialDiscipline = 'All',
 }: ResearchRepositorySectionProps) {
-  const [selectedDiscipline, setSelectedDiscipline] = useState<string>('All');
+  const [selectedDiscipline, setSelectedDiscipline] = useState<string>(initialDiscipline);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [expandedAbstracts, setExpandedAbstracts] = useState<Record<string, boolean>>({});
   const [copiedDoi, setCopiedDoi] = useState<string | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (initialDiscipline) {
+      setSelectedDiscipline(initialDiscipline);
+    }
+  }, [initialDiscipline]);
 
   const disciplines = ['All', 'Sciences', 'Social Sciences', 'Humanities', 'Professional Studies'];
 
@@ -146,29 +154,29 @@ export default function ResearchRepositorySection({
   };
 
   return (
-    <section id="repository" className="py-16 sm:py-20 bg-[#FAF8F5] border-b border-slate-200">
+    <section id="repository" className="scroll-mt-24 sm:scroll-mt-28 py-8 sm:py-10 lg:py-12 bg-[#FAF8F5] border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-10 space-y-3">
-          <div className="flex items-center justify-center gap-3">
-            <div className="w-12 h-0.5 bg-[#C5A059]" />
+        <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8 space-y-2">
+          <div className="flex items-center justify-center gap-3 mb-1">
+            <div className="w-10 h-0.5 bg-[#C5A059]" />
             <span className="text-xs font-bold tracking-widest uppercase text-[#C5A059] font-sans">
               RESEARCH REPOSITORY
             </span>
-            <div className="w-12 h-0.5 bg-[#C5A059]" />
+            <div className="w-10 h-0.5 bg-[#C5A059]" />
           </div>
 
-          <h2 className="font-serif text-3xl sm:text-4xl lg:text-[42px] font-bold text-slate-900 leading-tight">
+          <h2 className="font-serif text-2xl sm:text-3xl lg:text-[38px] font-bold text-slate-900 leading-tight">
             Curated Articles & Research Papers
           </h2>
-          <p className="text-sm sm:text-base text-slate-600 font-sans leading-relaxed">
+          <p className="text-xs sm:text-sm md:text-base text-slate-600 font-sans leading-relaxed">
             Peer-reviewed scholarship from <strong>Inaugural Issue (Vol. 1, Issue 1)</strong>. Search by title, author, keyword, or filter across academic disciplines.
           </p>
         </div>
 
         {/* Filter & Search Toolbar */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 mb-8 shadow-xs space-y-4 sm:space-y-5">
+        <div className="bg-white rounded-xl border border-slate-200 p-3.5 sm:p-5 mb-6 shadow-xs space-y-3 sm:space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
             
             {/* Search Input: full width on mobile */}
